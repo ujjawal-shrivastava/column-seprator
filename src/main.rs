@@ -9,7 +9,12 @@ fn write_to_file(name: String, data: &[u8]) {
     ofile.write_all(data).expect("Unable to write!");
 }
 
-fn run(file_path: &str, column: usize, batch_size: usize) -> Result<(), Box<dyn Error>> {
+fn run(
+    file_path: &str,
+    column: usize,
+    batch_size: usize,
+    prefix: String,
+) -> Result<(), Box<dyn Error>> {
     // Print Metadata
     println!("\nConversion Starting ...\n");
     println!("File Path : {}", file_path);
@@ -28,7 +33,11 @@ fn run(file_path: &str, column: usize, batch_size: usize) -> Result<(), Box<dyn 
         let mut values = vec![];
         for row in rows {
             if let Ok(row) = row.as_ref() {
-                values.push(format!("{}", &row.get(column - 1).unwrap_or_default()));
+                values.push(format!(
+                    "{}{}",
+                    prefix,
+                    &row.get(column - 1).unwrap_or_default()
+                ));
             }
         }
         let output = values.join(",");
@@ -83,7 +92,16 @@ fn main() {
         }
     };
 
-    if let Err(err) = run(&file_path, column, batch_size) {
+    let prefix: String = loop {
+        print!("Enter Prefix: ");
+        inp.clear();
+        std::io::stdout().flush().unwrap();
+        std::io::stdin().read_line(&mut inp).unwrap();
+        let v = inp.trim().to_string();
+        break v;
+    };
+
+    if let Err(err) = run(&file_path, column, batch_size, prefix) {
         println!("{}", err);
         process::exit(1);
     }
